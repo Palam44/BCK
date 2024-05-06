@@ -1,0 +1,84 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: your_name
+      changes:
+        - createTable:
+            tableName: teachers
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: first_name
+                  type: varchar(255)
+              - column:
+                  name: last_name
+                  type: varchar(255)
+
+        - createTable:
+            tableName: groups
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+
+        - createTable:
+            tableName: disciplines
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+
+        - createTable:
+            tableName: lessons
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: discipline_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_lessons_disciplines
+                    references: disciplines(id)
+              - column:
+                  name: group_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_lessons_groups
+                    references: groups(id)
+              - column:
+                  name: teacher_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_lessons_teachers
+                    references: teachers(id)
+              - column:
+                  name: day_of_week
+                  type: varchar(9)
+              - column:
+                  name: start_time
+                  type: time

@@ -9,9 +9,11 @@ import javax.persistence.OneToMany;
 
 @Entity
 public class Teacher {
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+  private String firstName;
   private String lastName;
   @OneToMany(mappedBy = "teacher")
   private List<Lesson> lesson;
@@ -33,4 +35,11 @@ public class Teacher {
     this.lastName = lastName;
   }
 
+  public String getFirstName() {
+    return firstName;
+  }
+
+  public void setFirstName(String firstName) {
+    this.firstName = firstName;
+  }
 }

@@ -1,6 +1,6 @@
 package com.example.bck.controller;
 
-import com.example.bck.model.Teacher;
+import com.example.bck.dto.TeacherDTO;
 import com.example.bck.service.TeacherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,26 +21,26 @@ public class TeacherController {
   }
 
   @GetMapping
-  public ResponseEntity<List<Teacher>> getAllTeachers() {
-    List<Teacher> teachers = teacherService.findAll();
+  public ResponseEntity<List<TeacherDTO>> getAllTeachers() {
+    List<TeacherDTO> teachers = teacherService.findAll();
     return ResponseEntity.ok(teachers);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Teacher> getTeacherById(@PathVariable Long id) {
-    Teacher teacher = teacherService.findById(id);
+  public ResponseEntity<TeacherDTO> getTeacherById(@PathVariable Long id) {
+    TeacherDTO teacher = teacherService.findById(id);
     return ResponseEntity.ok(teacher);
   }
 
   @PostMapping
-  public ResponseEntity<Teacher> createTeacher(@RequestBody Teacher teacher) {
-    Teacher createdTeacher = teacherService.save(teacher);
+  public ResponseEntity<TeacherDTO> createTeacher(@RequestBody TeacherDTO teacherDTO) {
+    TeacherDTO createdTeacher = teacherService.save(teacherDTO);
     return new ResponseEntity<>(createdTeacher, HttpStatus.CREATED);
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Teacher> updateTeacher(@PathVariable Long id, @RequestBody Teacher teacherDetails) {
-    Teacher updatedTeacher = teacherService.update(id, teacherDetails);
+  public ResponseEntity<TeacherDTO> updateTeacher(@PathVariable Long id, @RequestBody TeacherDTO teacherDTO) {
+    TeacherDTO updatedTeacher = teacherService.update(id, teacherDTO);
     return ResponseEntity.ok(updatedTeacher);
   }
 

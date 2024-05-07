@@ -1,6 +1,6 @@
 package com.example.bck.controller;
 
-import com.example.bck.model.Group;
+import com.example.bck.dto.GroupDTO;
 import com.example.bck.service.GroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,26 +21,26 @@ public class GroupController {
   }
 
   @GetMapping
-  public ResponseEntity<List<Group>> getAllGroups() {
-    List<Group> groups = groupService.findAll();
+  public ResponseEntity<List<GroupDTO>> getAllGroups() {
+    List<GroupDTO> groups = groupService.findAll();
     return ResponseEntity.ok(groups);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Group> getGroupById(@PathVariable Long id) {
-    Group group = groupService.findById(id);
+  public ResponseEntity<GroupDTO> getGroupById(@PathVariable Long id) {
+    GroupDTO group = groupService.findById(id);
     return ResponseEntity.ok(group);
   }
 
   @PostMapping
-  public ResponseEntity<Group> createGroup(@RequestBody Group group) {
-    Group createdGroup = groupService.save(group);
+  public ResponseEntity<GroupDTO> createGroup(@RequestBody GroupDTO groupDTO) {
+    GroupDTO createdGroup = groupService.save(groupDTO);
     return new ResponseEntity<>(createdGroup, HttpStatus.CREATED);
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Group> updateGroup(@PathVariable Long id, @RequestBody Group groupDetails) {
-    Group updatedGroup = groupService.update(id, groupDetails);
+  public ResponseEntity<GroupDTO> updateGroup(@PathVariable Long id, @RequestBody GroupDTO groupDetails) {
+    GroupDTO updatedGroup = groupService.update(id, groupDetails);
     return ResponseEntity.ok(updatedGroup);
   }
 

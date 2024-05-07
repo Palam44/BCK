@@ -1,6 +1,6 @@
 package com.example.bck.controller;
 
-import com.example.bck.model.Discipline;
+import com.example.bck.dto.DisciplineDTO;
 import com.example.bck.service.DisciplineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,26 +21,26 @@ public class DisciplineController {
   }
 
   @GetMapping
-  public ResponseEntity<List<Discipline>> getAllDisciplines() {
-    List<Discipline> disciplines = disciplineService.findAll();
+  public ResponseEntity<List<DisciplineDTO>> getAllDisciplines() {
+    List<DisciplineDTO> disciplines = disciplineService.findAll();
     return ResponseEntity.ok(disciplines);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Discipline> getDisciplineById(@PathVariable Long id) {
-    Discipline discipline = disciplineService.findById(id);
+  public ResponseEntity<DisciplineDTO> getDisciplineById(@PathVariable Long id) {
+    DisciplineDTO discipline = disciplineService.findById(id);
     return ResponseEntity.ok(discipline);
   }
 
   @PostMapping
-  public ResponseEntity<Discipline> createDiscipline(@RequestBody Discipline discipline) {
-    Discipline createdDiscipline = disciplineService.save(discipline);
+  public ResponseEntity<DisciplineDTO> createDiscipline(@RequestBody DisciplineDTO disciplineDTO) {
+    DisciplineDTO createdDiscipline = disciplineService.save(disciplineDTO);
     return new ResponseEntity<>(createdDiscipline, HttpStatus.CREATED);
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Discipline> updateDiscipline(@PathVariable Long id, @RequestBody Discipline discipline) {
-    Discipline updatedDiscipline = disciplineService.update(id, discipline);
+  public ResponseEntity<DisciplineDTO> updateDiscipline(@PathVariable Long id, @RequestBody DisciplineDTO disciplineDTO) {
+    DisciplineDTO updatedDiscipline = disciplineService.update(id, disciplineDTO);
     return ResponseEntity.ok(updatedDiscipline);
   }
 

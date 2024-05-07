@@ -1,11 +1,13 @@
 package com.example.bck.service;
 
+import com.example.bck.dto.GroupDTO;
 import com.example.bck.model.Group;
 import com.example.bck.repository.GroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class GroupService {
@@ -17,30 +19,51 @@ public class GroupService {
     this.groupRepository = groupRepository;
   }
 
-  public List<Group> findAll() {
-    return groupRepository.findAll();
+  public List<GroupDTO> findAll() {
+    return groupRepository.findAll().stream()
+        .map(this::convertToDTO)
+        .collect(Collectors.toList());
   }
 
-  public Group findById(Long id) {
-    return groupRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Group not found with id " + id));
-  }
-
-  public Group save(Group group) {
-    return groupRepository.save(group);
-  }
-
-  public Group update(Long id, Group groupDetails) {
+  public GroupDTO findById(Long id) {
     Group group = groupRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Group not found with id " + id));
+    return convertToDTO(group);
+  }
 
-    group.setName(groupDetails.getName());
+  public GroupDTO save(GroupDTO groupDTO) {
+    Group group = convertToEntity(groupDTO);
+    Group savedGroup = groupRepository.save(group);
+    return convertToDTO(savedGroup);
+  }
 
-    return groupRepository.save(group);
+  public GroupDTO update(Long id, GroupDTO groupDTO) {
+    Group group = groupRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Group not found with id " + id));
+    group.setName(groupDTO.getName());
+    Group updatedGroup = groupRepository.save(group);
+    return convertToDTO(updatedGroup);
   }
 
   public void delete(Long id) {
-    Group group = findById(id);
+    Group group = groupRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Group not found with id " + id));
     groupRepository.delete(group);
+  }
+
+  private GroupDTO convertToDTO(Group group) {
+    GroupDTO dto = new GroupDTO();
+    dto.setId(group.getId());
+    dto.setName(group.getName());
+    return dto;
+  }
+
+  private Group convertToEntity(GroupDTO dto) {
+    Group group = new Group();
+    if (dto.getId() != null) {
+      group.setId(dto.getId());
+    }
+    group.setName(dto.getName());
+    return group;
   }
 }

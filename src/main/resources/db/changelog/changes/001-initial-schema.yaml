@@ -4,7 +4,7 @@ databaseChangeLog:
       author: palam44
       changes:
         - createTable:
-            tableName: teachers
+            tableName: teacher
             columns:
               - column:
                   name: id
@@ -21,7 +21,7 @@ databaseChangeLog:
                   type: varchar(255)
 
         - createTable:
-            tableName: groups
+            tableName: group
             columns:
               - column:
                   name: id
@@ -35,7 +35,7 @@ databaseChangeLog:
                   type: varchar(255)
 
         - createTable:
-            tableName: disciplines
+            tableName: discipline
             columns:
               - column:
                   name: id
@@ -49,7 +49,7 @@ databaseChangeLog:
                   type: varchar(255)
 
         - createTable:
-            tableName: lessons
+            tableName: lesson
             columns:
               - column:
                   name: id
@@ -62,20 +62,20 @@ databaseChangeLog:
                   name: discipline_id
                   type: bigint
                   constraints:
-                    foreignKeyName: fk_lessons_disciplines
-                    references: disciplines(id)
+                    foreignKeyName: fk_lesson_discipline
+                    references: discipline(id)
               - column:
                   name: group_id
                   type: bigint
                   constraints:
-                    foreignKeyName: fk_lessons_groups
-                    references: groups(id)
+                    foreignKeyName: fk_lesson_group
+                    references: group(id)
               - column:
                   name: teacher_id
                   type: bigint
                   constraints:
-                    foreignKeyName: fk_lessons_teachers
-                    references: teachers(id)
+                    foreignKeyName: fk_lesson_teacher
+                    references: teacher(id)
               - column:
                   name: day_of_week
                   type: varchar(9)

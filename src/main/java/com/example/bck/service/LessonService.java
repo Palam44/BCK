@@ -44,8 +44,12 @@ public class LessonService {
   }
 
   @Transactional
-  public void delete(Long id) {
-    lessonRepository.deleteById(id);
+  public boolean delete(Long id) {
+    boolean exists = lessonRepository.existsById(id);
+    if (exists) {
+      lessonRepository.deleteById(id);
+    }
+    return exists;
   }
 
   public List<Lesson> findLessonsByGroupAndDay(Long groupId, DayOfWeek dayOfWeek) {

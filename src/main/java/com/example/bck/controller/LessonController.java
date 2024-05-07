@@ -81,5 +81,4 @@ public class LessonController {
         .collect(Collectors.toList());
     return ResponseEntity.ok(formattedLessons);
   }
-  //анотация билдер
 }

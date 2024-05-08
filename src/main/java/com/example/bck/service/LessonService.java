@@ -106,10 +106,12 @@ public class LessonService {
   public List<LessonDTO> findLessonsByGroupAndDay(Long groupId, DayOfWeek dayOfWeek) {
     Group group = groupRepository.findById(groupId)
         .orElseThrow(() -> new RuntimeException("Group not found with id " + groupId));
-    return lessonRepository.findByGroupAndDayOfWeekOrderByTime(group, dayOfWeek).stream()
+    return lessonRepository.findByGroupAndDayOfWeekOrderByTime(groupId, dayOfWeek).stream()
         .map(this::convertToDTO)
         .collect(Collectors.toList());
   }
+
+
 
   private LessonDTO convertToDTO(Lesson lesson) {
     ModelMapper modelMapper = new ModelMapper();

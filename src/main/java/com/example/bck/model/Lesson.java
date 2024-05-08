@@ -14,6 +14,7 @@ public class Lesson {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+  @Enumerated(EnumType.STRING)
   private DayOfWeek dayOfWeek; // День недели
   private LocalTime time; // Время начала
   @ManyToOne
@@ -23,6 +24,7 @@ public class Lesson {
   private Teacher teacher;
 
   @ManyToOne
+  @JoinColumn(name = "group_id", referencedColumnName = "id")
   private Group group;
 
 }

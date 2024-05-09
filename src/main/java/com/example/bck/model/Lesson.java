@@ -16,6 +16,7 @@ public class Lesson {
   private Long id;
   @Enumerated(EnumType.STRING)
   private DayOfWeek dayOfWeek; // День недели
+  @Column(name = "start_time")
   private LocalTime time; // Время начала
   @ManyToOne
   private Discipline discipline;

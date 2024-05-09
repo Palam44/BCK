@@ -71,23 +71,51 @@ public class LessonService {
       lesson.setGroup(group);
     }
 
+    Discipline discipline = null;
     if (lesson.getDiscipline() != null && lesson.getDiscipline().getId() != null) {
       Long disciplineId = lessonDTO.getDiscipline().getId();
-      Discipline discipline = disciplineRepository.findById(disciplineId)
+      discipline = disciplineRepository.findById(disciplineId)
           .orElseThrow(() -> new RuntimeException("Discipline not found with id " + disciplineId));
       lesson.setDiscipline(discipline);
     }
 
+    Teacher teacher = null;
     if (lesson.getTeacher() != null && lesson.getTeacher().getId() != null) {
       Long teacherId = lessonDTO.getTeacher().getId();
-      Teacher teacher = teacherRepository.findById(teacherId)
+      teacher = teacherRepository.findById(teacherId)
           .orElseThrow(() -> new RuntimeException("Teacher not found with id " + teacherId));
       lesson.setTeacher(teacher);
+    }
+
+    // Проверка, что преподаватель может преподавать дисциплину
+    if (discipline != null && !teacher.getDisciplines().contains(discipline)) {
+      throw new RuntimeException(
+          "Teacher with id " + teacher.getId() + " does not teach the discipline with id "
+              + discipline.getId());
     }
 
     lesson.setTime(LocalTime.now());
     Lesson savedLesson = lessonRepository.save(lesson);
     return convertToDTO(savedLesson);
+  }
+
+  public LessonDTO assignTeacherToLesson(Long lessonId, Long teacherId, Long disciplineId) {
+    Lesson lesson = lessonRepository.findById(lessonId)
+        .orElseThrow(() -> new RuntimeException("Lesson not found with id " + lessonId));
+    Teacher teacher = teacherRepository.findById(teacherId)
+        .orElseThrow(() -> new RuntimeException("Teacher not found with id " + teacherId));
+    Discipline discipline = disciplineRepository.findById(disciplineId)
+        .orElseThrow(() -> new RuntimeException("Discipline not found with id " + disciplineId));
+
+    // Проверка, что преподаватель может преподавать дисциплину
+    if (!teacher.getDisciplines().contains(discipline)) {
+      throw new RuntimeException("Teacher with id " + teacher.getId() + " does not teach the discipline with id " + discipline.getId());
+    }
+
+    lesson.setTeacher(teacher);
+    lesson.setDiscipline(discipline);
+    Lesson updatedLesson = lessonRepository.save(lesson);
+    return convertToDTO(updatedLesson);
   }
 
   public LessonDTO update(Long id, LessonDTO lessonDTO) {

@@ -81,4 +81,13 @@ public class LessonController {
         .collect(Collectors.toList());
     return ResponseEntity.ok(formattedLessons);
   }
+
+  @PostMapping("/{lessonId}/assign-teacher")
+  public ResponseEntity<LessonDTO> assignTeacherToLesson(
+      @PathVariable Long lessonId,
+      @RequestParam Long teacherId,
+      @RequestParam Long disciplineId) {
+    LessonDTO updatedLessonDTO = lessonService.assignTeacherToLesson(lessonId, teacherId, disciplineId);
+    return ResponseEntity.ok(updatedLessonDTO);
+  }
 }

@@ -2,6 +2,7 @@ package com.example.bck.controller;
 
 import com.example.bck.dto.GroupDTO;
 import com.example.bck.service.GroupService;
+import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class GroupController {
   }
 
   @PostMapping
-  public ResponseEntity<GroupDTO> createGroup(@RequestBody GroupDTO groupDTO) {
+  public ResponseEntity<GroupDTO> createGroup(@Valid @RequestBody GroupDTO groupDTO) {
     GroupDTO createdGroup = groupService.save(groupDTO);
     return new ResponseEntity<>(createdGroup, HttpStatus.CREATED);
   }

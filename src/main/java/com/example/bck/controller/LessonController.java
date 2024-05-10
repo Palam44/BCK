@@ -5,6 +5,7 @@ import com.example.bck.service.LessonService;
 import java.time.DayOfWeek;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
+import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,7 @@ public class LessonController {
   }
 
   @PostMapping
-  public ResponseEntity<LessonDTO> createLesson(@RequestBody LessonDTO lessonDTO) {
+  public ResponseEntity<LessonDTO> createLesson(@Valid @RequestBody LessonDTO lessonDTO) {
     try {
       LessonDTO createdLessonDTO = lessonService.save(lessonDTO);
       return new ResponseEntity<>(createdLessonDTO, HttpStatus.CREATED);

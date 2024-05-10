@@ -2,6 +2,7 @@ package com.example.bck.controller;
 
 import com.example.bck.dto.TeacherDTO;
 import com.example.bck.service.TeacherService;
+import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class TeacherController {
   }
 
   @PostMapping
-  public ResponseEntity<TeacherDTO> createTeacher(@RequestBody TeacherDTO teacherDTO) {
+  public ResponseEntity<TeacherDTO> createTeacher(@Valid @RequestBody TeacherDTO teacherDTO) {
     TeacherDTO createdTeacher = teacherService.save(teacherDTO);
     return new ResponseEntity<>(createdTeacher, HttpStatus.CREATED);
   }

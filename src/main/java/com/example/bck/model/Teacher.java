@@ -14,37 +14,27 @@ import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "teacher")
 public class Teacher {
 
-  @Setter
-  @Getter
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-
-  @Setter
-  @Getter
   private String firstName;
-
-  @Setter
-  @Getter
   private String lastName;
-
   @OneToMany(mappedBy = "teacher")
-  @Setter
-  @Getter
   private List<Lesson> lesson;
-
   @ManyToMany
   @JoinTable(
       name = "teacher_disciplines",
       joinColumns = @JoinColumn(name = "teacher_id"),
       inverseJoinColumns = @JoinColumn(name = "discipline_id")
   )
-  @Setter
-  @Getter
+
   private Set<Discipline> disciplines;
 
 }

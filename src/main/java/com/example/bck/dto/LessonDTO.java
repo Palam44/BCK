@@ -17,18 +17,13 @@ public class LessonDTO {
   @NotNull(message = "Lesson time is mandatory")
   @FutureOrPresent(message = "Lesson time must be in the future or present")
   private LocalTime time;
-  @Setter
-  @Getter
   @NotNull(message = "Discipline is mandatory")
   private DisciplineDTO discipline;
-  @Setter
-  @Getter
   @NotNull(message = "Teacher is mandatory")
   private TeacherDTO teacher;
-  @Setter
-  @Getter
   @NotNull(message = "Group is mandatory")
   private GroupDTO group;
+  private int duration; // Продолжительность занятия в минутах
 
   public LessonDTO() {
   }

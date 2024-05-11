@@ -13,9 +13,8 @@ import com.example.bck.repository.GroupRepository;
 import com.example.bck.repository.LessonRepository;
 import com.example.bck.repository.TeacherRepository;
 import java.time.DayOfWeek;
-import java.time.LocalDateTime;
+import java.time.Duration;
 import java.time.LocalTime;
-import java.util.Date;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,9 +26,10 @@ import java.util.stream.Collectors;
 public class LessonService {
 
   private final LessonRepository lessonRepository;
-  private  GroupRepository groupRepository;
+  private GroupRepository groupRepository;
   private final DisciplineRepository disciplineRepository;
   private final TeacherRepository teacherRepository;
+  private static final Duration BREAK_DURATION = Duration.ofMinutes(10);
 
   @Autowired
   public LessonService(LessonRepository lessonRepository, GroupRepository groupRepository,
@@ -109,7 +109,9 @@ public class LessonService {
 
     // Проверка, что преподаватель может преподавать дисциплину
     if (!teacher.getDisciplines().contains(discipline)) {
-      throw new RuntimeException("Teacher with id " + teacher.getId() + " does not teach the discipline with id " + discipline.getId());
+      throw new RuntimeException(
+          "Teacher with id " + teacher.getId() + " does not teach the discipline with id "
+              + discipline.getId());
     }
 
     lesson.setTeacher(teacher);
@@ -140,6 +142,46 @@ public class LessonService {
   }
 
 
+  public LessonDTO scheduleLesson(LessonDTO lessonDTO) {
+    LocalTime proposedStartTime = lessonDTO.getTime();
+    Duration lessonDuration = Duration.ofMinutes(lessonDTO.getDuration());
+    LocalTime proposedEndTime = proposedStartTime.plus(lessonDuration);
+
+    // Проверяем, что занятие и перерыв после него не пересекаются с другими занятиями
+    if (isTimeSlotAvailable(proposedStartTime, proposedEndTime, lessonDTO.getGroup().getId(),
+        lessonDTO.getDayOfWeek())) {
+      // Назначаем время начала занятия с учетом перерыва
+      Lesson lesson = convertToEntity(lessonDTO);
+      lesson.setTime(proposedStartTime);
+      Lesson savedLesson = lessonRepository.save(lesson);
+      return convertToDTO(savedLesson);
+    } else {
+      throw new RuntimeException(
+          "The time slot from " + proposedStartTime + " to " + proposedEndTime.plus(BREAK_DURATION)
+              + " is not available.");
+    }
+  }
+
+  private boolean isTimeSlotAvailable(LocalTime startTime, LocalTime endTime, Long groupId,
+      DayOfWeek dayOfWeek) {
+    // Получаем все занятия для группы в этот день недели
+    List<Lesson> lessons = lessonRepository.findByGroupAndDayOfWeekOrderByTime(groupId, dayOfWeek);
+
+    // Проверяем, что новое занятие не пересекается с существующими занятиями и перерывами
+    for (Lesson existingLesson : lessons) {
+      LocalTime existingLessonStartTime = existingLesson.getTime();
+      LocalTime existingLessonEndTime = existingLessonStartTime.plusMinutes(
+          existingLesson.getDuration());
+
+      // Проверяем пересечение с существующим занятием и перерывом после него
+      if (!startTime.isAfter(existingLessonEndTime.plus(BREAK_DURATION)) && !endTime.plus(
+          BREAK_DURATION).isBefore(existingLessonStartTime)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 
   private LessonDTO convertToDTO(Lesson lesson) {
     ModelMapper modelMapper = new ModelMapper();
@@ -154,6 +196,7 @@ public class LessonService {
     lesson.setDiscipline(convertToDiscipline(dto.getDiscipline()));
     lesson.setTeacher(convertToTeacher(dto.getTeacher()));
     lesson.setGroup(convertToGroup(dto.getGroup()));
+    lesson.setDuration(dto.getDuration());
     return lesson;
   }
 

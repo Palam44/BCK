@@ -6,12 +6,14 @@ import java.time.DayOfWeek;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/lessons")
 public class LessonController {
@@ -29,12 +31,18 @@ public class LessonController {
   }
 
   @PostMapping
-  public ResponseEntity<LessonDTO> createLesson(@Valid @RequestBody LessonDTO lessonDTO) {
+  public ResponseEntity<?> createLesson(@Valid @RequestBody LessonDTO lessonDTO) {
     try {
+      if (lessonDTO.getDuration() <= 0) {
+        log.warn("Attempt to create a lesson with non-positive duration");
+        return ResponseEntity.badRequest().body("Duration must be positive and greater than zero.");
+      }
       LessonDTO createdLessonDTO = lessonService.save(lessonDTO);
+      log.info("Created a new lesson with id: {}", createdLessonDTO.getId());
       return new ResponseEntity<>(createdLessonDTO, HttpStatus.CREATED);
     } catch (RuntimeException ex) {
-      return ResponseEntity.status(HttpStatus.CONFLICT).build();
+      log.error("Error creating lesson: {}", ex.getMessage(), ex);
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
   }
 
@@ -49,12 +57,18 @@ public class LessonController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<LessonDTO> updateLesson(@PathVariable Long id, @RequestBody LessonDTO lessonDTO) {
+  public ResponseEntity<?> updateLesson(@PathVariable Long id, @Valid @RequestBody LessonDTO lessonDTO) {
     try {
+      if (lessonDTO.getDuration() <= 0) {
+        log.warn("Attempt to update a lesson with non-positive duration");
+        return ResponseEntity.badRequest().body("Duration must be positive and greater than zero.");
+      }
       LessonDTO updatedLessonDTO = lessonService.update(id, lessonDTO);
+      log.info("Updated lesson with id: {}", id);
       return ResponseEntity.ok(updatedLessonDTO);
     } catch (RuntimeException ex) {
-      return ResponseEntity.notFound().build();
+      log.error("Error updating lesson with id {}: {}", id, ex.getMessage(), ex);
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
   }
 

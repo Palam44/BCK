@@ -82,3 +82,8 @@ databaseChangeLog:
               - column:
                   name: start_time
                   type: time
+              - column:
+                  name: duration
+                  type: int
+                  constraints:
+                   nullable: false

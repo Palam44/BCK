@@ -20,6 +20,7 @@ public class Lesson {
   private LocalTime time; // Время начала
   @ManyToOne
   private Discipline discipline;
+  private int duration; // Продолжительность занятия в минутах
 
   @ManyToOne
   private Teacher teacher;

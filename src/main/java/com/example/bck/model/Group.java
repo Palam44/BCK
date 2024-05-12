@@ -10,8 +10,7 @@ import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
-@Getter
+
 @Entity
 @Table(name = "\"group\"")
 public class Group {
@@ -26,5 +25,29 @@ public class Group {
   private List<Lesson> lessons;
 
   public Group() {
+  }
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public List<Lesson> getLessons() {
+    return lessons;
+  }
+
+  public void setLessons(List<Lesson> lessons) {
+    this.lessons = lessons;
   }
 }

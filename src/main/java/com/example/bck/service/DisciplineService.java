@@ -1,40 +1,43 @@
 package com.example.bck.service;
 
 import com.example.bck.dto.DisciplineDTO;
+import com.example.bck.mapper.DisciplineMapper;
 import com.example.bck.model.Discipline;
 import com.example.bck.repository.DisciplineRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class DisciplineService {
 
   private final DisciplineRepository disciplineRepository;
+  private final DisciplineMapper disciplineMapper;
 
   @Autowired
-  public DisciplineService(DisciplineRepository disciplineRepository) {
+  public DisciplineService(DisciplineRepository disciplineRepository, DisciplineMapper disciplineMapper) {
     this.disciplineRepository = disciplineRepository;
+    this.disciplineMapper = disciplineMapper;
+
   }
 
   public List<DisciplineDTO> findAll() {
     return disciplineRepository.findAll().stream()
-        .map(this::convertToDTO)
-        .collect(Collectors.toList());
+        .map(disciplineMapper::disciplineToDisciplineDTO)
+        .toList();
   }
 
   public DisciplineDTO findById(Long id) {
     Discipline discipline = disciplineRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Discipline not found with id " + id));
-    return convertToDTO(discipline);
+    return disciplineMapper.disciplineToDisciplineDTO(discipline);
   }
 
   public DisciplineDTO save(DisciplineDTO disciplineDTO) {
-    Discipline discipline = convertToEntity(disciplineDTO);
+    Discipline discipline = disciplineMapper.disciplineDTOToDiscipline(disciplineDTO);
     Discipline savedDiscipline = disciplineRepository.save(discipline);
-    return convertToDTO(savedDiscipline);
+    return disciplineMapper.disciplineToDisciplineDTO(savedDiscipline);
   }
 
   public DisciplineDTO update(Long id, DisciplineDTO disciplineDTO) {
@@ -42,7 +45,7 @@ public class DisciplineService {
         .orElseThrow(() -> new RuntimeException("Discipline not found with id " + id));
     discipline.setName(disciplineDTO.getName());
     Discipline updatedDiscipline = disciplineRepository.save(discipline);
-    return convertToDTO(updatedDiscipline);
+    return disciplineMapper.disciplineToDisciplineDTO(updatedDiscipline);
   }
 
   public void delete(Long id) {
@@ -51,17 +54,7 @@ public class DisciplineService {
     disciplineRepository.delete(discipline);
   }
 
-  private DisciplineDTO convertToDTO(Discipline discipline) {
-    DisciplineDTO dto = new DisciplineDTO();
-    dto.setId(discipline.getId());
-    dto.setName(discipline.getName());
-    return dto;
-  }
 
-  private Discipline convertToEntity(DisciplineDTO dto) {
-    Discipline discipline = new Discipline();
-    discipline.setId(dto.getId());
-    discipline.setName(dto.getName());
-    return discipline;
-  }
+
+
 }

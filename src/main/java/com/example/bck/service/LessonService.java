@@ -1,9 +1,8 @@
 package com.example.bck.service;
 
-import com.example.bck.dto.DisciplineDTO;
-import com.example.bck.dto.GroupDTO;
+
 import com.example.bck.dto.LessonDTO;
-import com.example.bck.dto.TeacherDTO;
+import com.example.bck.mapper.LessonMapper;
 import com.example.bck.model.Discipline;
 import com.example.bck.model.Group;
 import com.example.bck.model.Lesson;
@@ -15,12 +14,10 @@ import com.example.bck.repository.TeacherRepository;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalTime;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class LessonService {
@@ -29,15 +26,18 @@ public class LessonService {
   private GroupRepository groupRepository;
   private final DisciplineRepository disciplineRepository;
   private final TeacherRepository teacherRepository;
+  private final LessonMapper lessonMapper;
   private static final Duration BREAK_DURATION = Duration.ofMinutes(10);
 
   @Autowired
   public LessonService(LessonRepository lessonRepository, GroupRepository groupRepository,
-      DisciplineRepository disciplineRepository, TeacherRepository teacherRepository) {
+      DisciplineRepository disciplineRepository, TeacherRepository teacherRepository,
+      LessonMapper lessonMapper) {
     this.lessonRepository = lessonRepository;
     this.groupRepository = groupRepository;
     this.disciplineRepository = disciplineRepository;
     this.teacherRepository = teacherRepository;
+    this.lessonMapper = lessonMapper;
   }
 
   @Autowired
@@ -47,18 +47,18 @@ public class LessonService {
 
   public List<LessonDTO> findAll() {
     return lessonRepository.findAll().stream()
-        .map(this::convertToDTO)
-        .collect(Collectors.toList());
+        .map(lessonMapper::lessonToLessonDTO)
+        .toList();
   }
 
   public LessonDTO findById(Long id) {
     Lesson lesson = lessonRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Lesson not found with id " + id));
-    return convertToDTO(lesson);
+    return lessonMapper.lessonToLessonDTO(lesson);
   }
 
   public LessonDTO save(LessonDTO lessonDTO) {
-    Lesson lesson = convertToEntity(lessonDTO);
+    Lesson lesson = lessonMapper.lessonDTOToLesson(lessonDTO);
 
     if (lesson.getId() != null && lessonRepository.existsById(lesson.getId())) {
       throw new RuntimeException("Lesson with id " + lesson.getId() + " already exists");
@@ -95,8 +95,9 @@ public class LessonService {
     }
 
     lesson.setTime(LocalTime.now());
+    setLessonRelations(lesson, lessonDTO);
     Lesson savedLesson = lessonRepository.save(lesson);
-    return convertToDTO(savedLesson);
+    return lessonMapper.lessonToLessonDTO(savedLesson);
   }
 
   public LessonDTO assignTeacherToLesson(Long lessonId, Long teacherId, Long disciplineId) {
@@ -117,15 +118,16 @@ public class LessonService {
     lesson.setTeacher(teacher);
     lesson.setDiscipline(discipline);
     Lesson updatedLesson = lessonRepository.save(lesson);
-    return convertToDTO(updatedLesson);
+    return lessonMapper.lessonToLessonDTO(updatedLesson);
   }
 
   public LessonDTO update(Long id, LessonDTO lessonDTO) {
     Lesson lesson = lessonRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Lesson not found with id " + id));
-    updateLessonFromDTO(lesson, lessonDTO);
+    lessonMapper.updateLessonFromDTO(lessonDTO, lesson);
+    setLessonRelations(lesson, lessonDTO);
     Lesson updatedLesson = lessonRepository.save(lesson);
-    return convertToDTO(updatedLesson);
+    return lessonMapper.lessonToLessonDTO(updatedLesson);
   }
 
   public boolean delete(Long id) {
@@ -134,11 +136,9 @@ public class LessonService {
   }
 
   public List<LessonDTO> findLessonsByGroupAndDay(Long groupId, DayOfWeek dayOfWeek) {
-    Group group = groupRepository.findById(groupId)
-        .orElseThrow(() -> new RuntimeException("Group not found with id " + groupId));
-    return lessonRepository.findByGroupAndDayOfWeekOrderByTime(groupId, dayOfWeek).stream()
-        .map(this::convertToDTO)
-        .collect(Collectors.toList());
+   return lessonRepository.findByGroupAndDayOfWeekOrderByTime(groupId, dayOfWeek).stream()
+        .map(lessonMapper::lessonToLessonDTO)
+        .toList();
   }
 
 
@@ -147,35 +147,23 @@ public class LessonService {
     Duration lessonDuration = Duration.ofMinutes(lessonDTO.getDuration());
     LocalTime proposedEndTime = proposedStartTime.plus(lessonDuration);
 
-    // Проверяем, что занятие и перерыв после него не пересекаются с другими занятиями
-    if (isTimeSlotAvailable(proposedStartTime, proposedEndTime, lessonDTO.getGroup().getId(),
-        lessonDTO.getDayOfWeek())) {
-      // Назначаем время начала занятия с учетом перерыва
-      Lesson lesson = convertToEntity(lessonDTO);
+    if (isTimeSlotAvailable(proposedStartTime, proposedEndTime, lessonDTO.getGroup().getId(), lessonDTO.getDayOfWeek())) {
+      Lesson lesson = lessonMapper.lessonDTOToLesson(lessonDTO);
+      setLessonRelations(lesson, lessonDTO);
       lesson.setTime(proposedStartTime);
       Lesson savedLesson = lessonRepository.save(lesson);
-      return convertToDTO(savedLesson);
+      return lessonMapper.lessonToLessonDTO(savedLesson);
     } else {
-      throw new RuntimeException(
-          "The time slot from " + proposedStartTime + " to " + proposedEndTime.plus(BREAK_DURATION)
-              + " is not available.");
+      throw new RuntimeException("The time slot from " + proposedStartTime + " to " + proposedEndTime.plus(BREAK_DURATION) + " is not available.");
     }
   }
 
-  private boolean isTimeSlotAvailable(LocalTime startTime, LocalTime endTime, Long groupId,
-      DayOfWeek dayOfWeek) {
-    // Получаем все занятия для группы в этот день недели
+  private boolean isTimeSlotAvailable(LocalTime startTime, LocalTime endTime, Long groupId, DayOfWeek dayOfWeek) {
     List<Lesson> lessons = lessonRepository.findByGroupAndDayOfWeekOrderByTime(groupId, dayOfWeek);
-
-    // Проверяем, что новое занятие не пересекается с существующими занятиями и перерывами
     for (Lesson existingLesson : lessons) {
       LocalTime existingLessonStartTime = existingLesson.getTime();
-      LocalTime existingLessonEndTime = existingLessonStartTime.plusMinutes(
-          existingLesson.getDuration());
-
-      // Проверяем пересечение с существующим занятием и перерывом после него
-      if (!startTime.isAfter(existingLessonEndTime.plus(BREAK_DURATION)) && !endTime.plus(
-          BREAK_DURATION).isBefore(existingLessonStartTime)) {
+      LocalTime existingLessonEndTime = existingLessonStartTime.plusMinutes(existingLesson.getDuration());
+      if (!startTime.isAfter(existingLessonEndTime.plus(BREAK_DURATION)) && !endTime.plus(BREAK_DURATION).isBefore(existingLessonStartTime)) {
         return false;
       }
     }
@@ -183,50 +171,23 @@ public class LessonService {
   }
 
 
-  private LessonDTO convertToDTO(Lesson lesson) {
-    ModelMapper modelMapper = new ModelMapper();
-    return modelMapper.map(lesson, LessonDTO.class);
+  private void setLessonRelations(Lesson lesson, LessonDTO lessonDTO) {
+    if (lessonDTO.getGroup() != null && lessonDTO.getGroup().getId() != null) {
+      Group group = groupRepository.findById(lessonDTO.getGroup().getId())
+          .orElseThrow(() -> new RuntimeException("Group not found with id " + lessonDTO.getGroup().getId()));
+      lesson.setGroup(group);
+    }
+    if (lessonDTO.getDiscipline() != null && lessonDTO.getDiscipline().getId() != null) {
+      Discipline discipline = disciplineRepository.findById(lessonDTO.getDiscipline().getId())
+          .orElseThrow(() -> new RuntimeException("Discipline not found with id " + lessonDTO.getDiscipline().getId()));
+      lesson.setDiscipline(discipline);
+    }
+    if (lessonDTO.getTeacher() != null && lessonDTO.getTeacher().getId() != null) {
+      Teacher teacher = teacherRepository.findById(lessonDTO.getTeacher().getId())
+          .orElseThrow(() -> new RuntimeException("Teacher not found with id " + lessonDTO.getTeacher().getId()));
+      lesson.setTeacher(teacher);
+    }
   }
 
-  private Lesson convertToEntity(LessonDTO dto) {
-    Lesson lesson = new Lesson();
-    lesson.setId(dto.getId());
-    lesson.setDayOfWeek(dto.getDayOfWeek());
-    lesson.setTime(dto.getTime());
-    lesson.setDiscipline(convertToDiscipline(dto.getDiscipline()));
-    lesson.setTeacher(convertToTeacher(dto.getTeacher()));
-    lesson.setGroup(convertToGroup(dto.getGroup()));
-    lesson.setDuration(dto.getDuration());
-    return lesson;
-  }
 
-  private Discipline convertToDiscipline(DisciplineDTO dto) {
-    Discipline discipline = new Discipline();
-    discipline.setId(dto.getId());
-    discipline.setName(dto.getName());
-    return discipline;
-  }
-
-  private Teacher convertToTeacher(TeacherDTO dto) {
-    Teacher teacher = new Teacher();
-    teacher.setId(dto.getId());
-    teacher.setFirstName(dto.getFirstName());
-    teacher.setLastName(dto.getLastName());
-    return teacher;
-  }
-
-  private Group convertToGroup(GroupDTO dto) {
-    Group group = new Group();
-    group.setId(dto.getId());
-    group.setName(dto.getName());
-    return group;
-  }
-
-  private void updateLessonFromDTO(Lesson lesson, LessonDTO dto) {
-    lesson.setDayOfWeek(dto.getDayOfWeek());
-    lesson.setTime(dto.getTime());
-    lesson.setDiscipline(convertToDiscipline(dto.getDiscipline()));
-    lesson.setTeacher(convertToTeacher(dto.getTeacher()));
-    lesson.setGroup(convertToGroup(dto.getGroup()));
-  }
 }

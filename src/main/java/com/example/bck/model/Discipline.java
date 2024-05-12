@@ -10,8 +10,7 @@ import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
-@Getter
+
 @Entity
 @Table(name = "discipline")
 public class Discipline {
@@ -23,4 +22,30 @@ public class Discipline {
   @ManyToMany(mappedBy = "disciplines")
   private Set<Teacher> teachers;
 
+  public Discipline() {
+  }
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public Set<Teacher> getTeachers() {
+    return teachers;
+  }
+
+  public void setTeachers(Set<Teacher> teachers) {
+    this.teachers = teachers;
+  }
 }

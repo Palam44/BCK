@@ -1,72 +1,56 @@
 package com.example.bck.service;
 
 import com.example.bck.dto.TeacherDTO;
+import com.example.bck.mapper.TeacherMapper;
 import com.example.bck.model.Teacher;
 import com.example.bck.repository.TeacherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TeacherService {
 
   private final TeacherRepository teacherRepository;
+  private final TeacherMapper teacherMapper;
 
   @Autowired
-  public TeacherService(TeacherRepository teacherRepository) {
+  public TeacherService(TeacherRepository teacherRepository, TeacherMapper teacherMapper) {
     this.teacherRepository = teacherRepository;
+    this.teacherMapper = teacherMapper;
   }
 
   public List<TeacherDTO> findAll() {
     return teacherRepository.findAll().stream()
-        .map(this::convertToDTO)
-        .collect(Collectors.toList());
+        .map(teacherMapper::teacherToTeacherDTO)
+        .toList();
   }
 
   public TeacherDTO findById(Long id) {
     Teacher teacher = teacherRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Teacher not found with id " + id));
-    return convertToDTO(teacher);
+    return teacherMapper.teacherToTeacherDTO(teacher);
   }
 
   public TeacherDTO save(TeacherDTO teacherDTO) {
-    Teacher teacher = convertToEntity(teacherDTO);
+    Teacher teacher = teacherMapper.teacherDTOToTeacher(teacherDTO);
     Teacher savedTeacher = teacherRepository.save(teacher);
-    return convertToDTO(savedTeacher);
+    return teacherMapper.teacherToTeacherDTO(savedTeacher);
   }
 
   public TeacherDTO update(Long id, TeacherDTO teacherDTO) {
     Teacher teacher = teacherRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Teacher not found with id " + id));
-    teacher.setFirstName(teacherDTO.getFirstName());
-    teacher.setLastName(teacherDTO.getLastName());
+    teacherMapper.updateTeacherFromDTO(teacherDTO, teacher);
     Teacher updatedTeacher = teacherRepository.save(teacher);
-    return convertToDTO(updatedTeacher);
+    return teacherMapper.teacherToTeacherDTO(updatedTeacher);
   }
 
   public void delete(Long id) {
-    Teacher teacher = teacherRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Teacher not found with id " + id));
-    teacherRepository.delete(teacher);
-  }
-
-  private TeacherDTO convertToDTO(Teacher teacher) {
-    TeacherDTO dto = new TeacherDTO();
-    dto.setId(teacher.getId());
-    dto.setFirstName(teacher.getFirstName());
-    dto.setLastName(teacher.getLastName());
-    return dto;
-  }
-
-  private Teacher convertToEntity(TeacherDTO dto) {
-    Teacher teacher = new Teacher();
-    if (dto.getId() != null) {
-      teacher.setId(dto.getId());
+    if (!teacherRepository.existsById(id)) {
+      throw new RuntimeException("Teacher not found with id " + id);
     }
-    teacher.setFirstName(dto.getFirstName());
-    teacher.setLastName(dto.getLastName());
-    return teacher;
+    teacherRepository.deleteById(id);
   }
 }

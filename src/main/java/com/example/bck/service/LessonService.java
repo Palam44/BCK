@@ -14,6 +14,8 @@ import com.example.bck.repository.TeacherRepository;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -139,6 +141,17 @@ public class LessonService {
    return lessonRepository.findByGroupAndDayOfWeekOrderByTime(groupId, dayOfWeek).stream()
         .map(lessonMapper::lessonToLessonDTO)
         .toList();
+  }
+
+  public List<String> getFormattedLessonsByGroupAndDay(Long groupId, DayOfWeek dayOfWeek) {
+    List<LessonDTO> lessonDTOs = findLessonsByGroupAndDay(groupId, dayOfWeek);
+    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+    return lessonDTOs.stream()
+        .map(lessonDTO -> String.format("%s - %s (%s)",
+            lessonDTO.getTime().format(timeFormatter),
+            lessonDTO.getDiscipline().getName(),
+            lessonDTO.getTeacher().getLastName()))
+        .collect(Collectors.toList());
   }
 
 

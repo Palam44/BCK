@@ -5,10 +5,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
+
 
 
 @Entity
@@ -19,7 +19,7 @@ public class Group {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private String name; // Название группы
+  private String name;
 
   @OneToMany(mappedBy = "group")
   private List<Lesson> lessons;

@@ -17,7 +17,7 @@ public class Lesson {
   private DayOfWeek dayOfWeek; // День недели
   @Column(name = "start_time")
   private LocalTime time; // Время начала
-  @ManyToOne
+  @OneToOne
   private Discipline discipline;
   private int duration; // Продолжительность занятия в минутах
 
